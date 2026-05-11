@@ -1,0 +1,8 @@
+/vendor
+/runtime
+/web/assets
+/config/config_apps.php
+*.log
+*.DS_Store
+.idea/
+.vscode/
