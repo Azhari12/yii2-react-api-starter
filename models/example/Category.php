@@ -8,7 +8,7 @@ class Category extends ActiveRecord
 {
     public static function tableName()
     {
-        return 'starter_app.tb_categories';
+        return 'simdoku.tb_categories';
     }
 
     public function rules()
