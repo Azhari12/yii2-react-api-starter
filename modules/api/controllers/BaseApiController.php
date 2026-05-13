@@ -20,7 +20,7 @@ class BaseApiController extends Controller
                     'cors' => [
                         'Origin' => [Yii::$app->params['frontendOrigin']],
                         'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-                        'Access-Control-Request-Headers' => ['*'],
+                        'Access-Control-Request-Headers' => ['Content-Type', 'X-Requested-With', 'Accept', 'Authorization'],
                         'Access-Control-Allow-Credentials' => true,
                         'Access-Control-Allow-Headers' => ['Content-Type', 'Authorization', 'X-Requested-With'],
                     ],
@@ -36,7 +36,7 @@ class BaseApiController extends Controller
                 ->set('Access-Control-Allow-Origin', Yii::$app->params['frontendOrigin'])
                 ->set('Access-Control-Allow-Credentials', 'true')
                 ->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                ->set('Access-Control-Allow-Headers', '*')
+                ->set('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Accept, Authorization')
                 ->set('Access-Control-Max-Age', '86400');
             Yii::$app->response->setStatusCode(200);
             Yii::$app->response->content = '';

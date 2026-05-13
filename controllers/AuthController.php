@@ -20,7 +20,7 @@ class AuthController extends Controller
                 'Origin' => [Yii::$app->params['frontendOrigin']],
                 'Access-Control-Request-Method' => ['GET', 'POST', 'OPTIONS'],
                 'Access-Control-Allow-Credentials' => true,
-                'Access-Control-Request-Headers' => ['*'],
+                'Access-Control-Request-Headers' => ['Content-Type', 'X-Requested-With', 'Accept', 'Authorization'],
                 'Access-Control-Max-Age' => 86400,
             ],
         ];
@@ -34,7 +34,7 @@ class AuthController extends Controller
                 ->set('Access-Control-Allow-Origin', Yii::$app->params['frontendOrigin'])
                 ->set('Access-Control-Allow-Credentials', 'true')
                 ->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-                ->set('Access-Control-Allow-Headers', '*')
+                ->set('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Accept, Authorization')
                 ->set('Access-Control-Max-Age', '86400');
             Yii::$app->response->setStatusCode(200);
             Yii::$app->response->content = '';
@@ -43,8 +43,15 @@ class AuthController extends Controller
         return parent::beforeAction($action);
     }
 
+    public function actionOptions()
+    {
+        Yii::$app->response->setStatusCode(200);
+        return '';
+    }
+
     public function actionCheckLogin()
     {
+
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         if (!Yii::$app->user->isGuest) {
