@@ -10,12 +10,12 @@ class User extends ActiveRecord implements IdentityInterface
 {
     public static function getDb()
     {
-        return Yii::$app->db_sso;
+        return \Yii::$app->db;
     }
 
     public static function tableName()
     {
-        return 'so.akn_user';
+        return 'sso.akn_user';
     }
 
     public static function findIdentity($id)
