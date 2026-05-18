@@ -6,6 +6,10 @@ $db_sso = require __DIR__ . '/db_sso.php';
 $db_rbac = require __DIR__ . '/db_rbac.php';
 $params['config_apps'] = $config_apps;
 
+/**
+ * Mode SSO: set config_sso = true di config_apps.php untuk menggunakan SSO eksternal.
+ * Jika false, gunakan login lokal (auth/login).
+ */
 $user = [];
 if ($params['config_sso'] === true) {
     $user = [
@@ -13,7 +17,8 @@ if ($params['config_sso'] === true) {
         'identityClass' => 'app\models\Identitas',
         'enableAutoLogin' => true,
         'loginUrl' => $config_apps['config']['url_apps']['sso'] . 'masuk?b=' . $config_apps['config']['url_apps']['base'],
-        'identityCookie' => ['name' => '_identity-id', 'path' => '/', 'httpOnly' => true, 'domain' => '.starter.aa'],
+        // Sesuaikan domain cookie dengan domain lokal Anda (contoh: '.starter.aa')
+        'identityCookie' => ['name' => '_identity-id', 'path' => '/', 'httpOnly' => true, 'domain' => $config_apps['config']['cookie_domain']],
     ];
 } else {
     $user = [
@@ -35,7 +40,8 @@ $config = [
     ],
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'sso',
+            // PENTING: Samakan nilai ini dengan cookieValidationKey di aplikasi SSO Anda
+            'cookieValidationKey' => $config_apps['config']['cookie_validation_key'],
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ],
@@ -49,7 +55,8 @@ $config = [
                 'lifetime' => 24 * 60 * 60,
                 'httpOnly' => true,
                 'path' => '/',
-                'domain' => '.local.aa',
+                // Sesuaikan dengan domain Anda (contoh: '.starter.aa')
+                'domain' => $config_apps['config']['cookie_domain'],
             ],
         ],
         'sessionMiddleware' => [
@@ -84,11 +91,6 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                // Auth
-                // 'GET auth/check-login' => 'auth/check-login',
-                // 'POST auth/logout' => 'auth/logout',
-                // 'OPTIONS auth/<action>' => 'auth/options',
-
                 // API Module - RBAC
                 'GET api/rbac/routes' => 'api/rbac/routes',
                 'POST api/rbac/assign-routes' => 'api/rbac/assign-routes',
