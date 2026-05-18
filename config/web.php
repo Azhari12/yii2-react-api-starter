@@ -155,6 +155,7 @@ $config = [
             'debug/*',
             'gii/*',
             'auth/*',
+            'api/rbac/*',
         ],
     ],
     'params' => $params,

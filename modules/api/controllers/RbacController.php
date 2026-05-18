@@ -17,12 +17,24 @@ class RbacController extends BaseApiController
 
     public function actionRoutes()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
         $model = new Route();
-        $routes = $model->getRoutes();
+
+        $availableRoutes = [];
+        $assignedRoutes = [];
+
+        foreach ($model->getRoutes()['available'] as $route) {
+            $availableRoutes[] = $route;
+        }
+
+        foreach ($model->getRoutes()['assigned'] as $route) {
+            $assignedRoutes[] = $route;
+        }
 
         return $this->success([
-            'available_routes' => array_values($routes['available']),
-            'assigned_routes' => array_values($routes['assigned']),
+            'available_routes' => $availableRoutes,
+            'assigned_routes' => $assignedRoutes,
         ]);
     }
 
@@ -30,7 +42,8 @@ class RbacController extends BaseApiController
     {
         $data = Yii::$app->request->post();
         $model = new Route();
-        $model->addNew($data);
+        $routes = $data['items'] ?? [];
+        $model->addNew($routes);
         return $this->success(null, 'Routes assigned successfully.');
     }
 
@@ -38,7 +51,8 @@ class RbacController extends BaseApiController
     {
         $data = Yii::$app->request->post();
         $model = new Route();
-        $model->remove($data);
+        $routes = $data['items'] ?? [];
+        $model->remove($routes);
         return $this->success(null, 'Routes removed successfully.');
     }
 

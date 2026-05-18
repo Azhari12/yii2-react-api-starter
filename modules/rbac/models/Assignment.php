@@ -3,92 +3,121 @@
 namespace app\modules\rbac\models;
 
 use app\modules\rbac\components\Configs;
+use app\modules\rbac\components\Helper;
 use Yii;
-use yii\base\Model;
 
-class Assignment extends Model
+/**
+ * Description of Assignment
+ *
+ * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @since 2.5
+ */
+class Assignment extends \app\modules\rbac\BaseObject
 {
+    /**
+     * @var integer User id
+     */
     public $id;
+    /**
+     * @var \yii\web\IdentityInterface User
+     */
     public $user;
 
-    public function __construct($id, $user = null, $config = [])
+    /**
+     * @inheritdoc
+     */
+    public function __construct($id, $user = null, $config = array())
     {
         $this->id = $id;
         $this->user = $user;
         parent::__construct($config);
     }
 
+    /**
+     * Grands a roles from a user.
+     * @param array $items
+     * @return integer number of successful grand
+     */
+    public function assign($items)
+    {
+        $manager = Configs::authManager();
+        $success = 0;
+        foreach ($items as $name) {
+            try {
+                $item = $manager->getRole($name);
+                $item = $item ?: $manager->getPermission($name);
+                $manager->assign($item, $this->id);
+                $success++;
+            } catch (\Exception $exc) {
+                Yii::error($exc->getMessage(), __METHOD__);
+            }
+        }
+        Helper::invalidate();
+        return $success;
+    }
+
+    /**
+     * Revokes a roles from a user.
+     * @param array $items
+     * @return integer number of successful revoke
+     */
+    public function revoke($items)
+    {
+        $manager = Configs::authManager();
+        $success = 0;
+        foreach ($items as $name) {
+            try {
+                $item = $manager->getRole($name);
+                $item = $item ?: $manager->getPermission($name);
+                $manager->revoke($item, $this->id);
+                $success++;
+            } catch (\Exception $exc) {
+                Yii::error($exc->getMessage(), __METHOD__);
+            }
+        }
+        Helper::invalidate();
+        return $success;
+    }
+
+    /**
+     * Get all available and assigned roles/permission
+     * @return array
+     */
     public function getItems()
     {
-        $auth = Configs::authManager();
-
+        $manager = Configs::authManager();
         $available = [];
+        foreach (array_keys($manager->getRoles()) as $name) {
+            $available[$name] = 'role';
+        }
+
+        foreach (array_keys($manager->getPermissions()) as $name) {
+            if ($name[0] != '/') {
+                $available[$name] = 'permission';
+            }
+        }
+
         $assigned = [];
-
-        $roles = $auth->getRoles();
-        $permissions = $auth->getPermissions();
-        $assignedItems = $auth->getAssignments($this->id);
-
-        foreach ($roles as $name => $role) {
-            if (isset($assignedItems[$name])) {
-                $assigned[] = $name;
-            } else {
-                $available[] = $name;
-            }
+        foreach ($manager->getAssignments($this->id) as $item) {
+            $assigned[$item->roleName] = $available[$item->roleName];
+            unset($available[$item->roleName]);
         }
 
-        // Only include non-route permissions
-        foreach ($permissions as $name => $permission) {
-            if (strncmp($name, '/', 1) !== 0) {
-                if (isset($assignedItems[$name])) {
-                    $assigned[] = $name;
-                } else {
-                    $available[] = $name;
-                }
-            }
-        }
-
+        ksort($available);
+        ksort($assigned);
         return [
             'available' => $available,
             'assigned' => $assigned,
         ];
     }
 
-    public function assign($data)
+    /**
+     * @inheritdoc
+     */
+    public function __get($name)
     {
-        $auth = Configs::authManager();
-        $items = $data['items'] ?? [];
-
-        foreach ($items as $name) {
-            $item = $auth->getRole($name);
-            if ($item === null) {
-                $item = $auth->getPermission($name);
-            }
-            if ($item !== null) {
-                try {
-                    $auth->assign($item, $this->id);
-                } catch (\Exception $e) {
-                    // Already assigned
-                }
-            }
+        if ($this->user) {
+            return $this->user->$name;
         }
-        return true;
-    }
-
-    public function revoke($data)
-    {
-        $auth = Configs::authManager();
-        $items = $data['items'] ?? [];
-
-        foreach ($items as $name) {
-            $item = $auth->getRole($name);
-            if ($item === null) {
-                $item = $auth->getPermission($name);
-            }
-            if ($item !== null) {
-                $auth->revoke($item, $this->id);
-            }
-        }
-        return true;
     }
 }
